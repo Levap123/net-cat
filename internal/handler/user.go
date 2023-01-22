@@ -14,21 +14,26 @@ type UserHandler struct {
 	Conn net.Conn
 }
 
-var userQuantity []UserHandler
+var userQuantity = make(map[string]net.Conn, 10)
 
-func (uh *UserHandler) HandleConnection(msgChan chan string, mu *sync.Mutex) {
-	mu.Lock()
+func (uh *UserHandler) HandleConnection(msgChan chan BroadPayload, mu *sync.Mutex) {
 	welcome(uh.Conn)
 	reader := bufio.NewReader(uh.Conn)
-	var err error
-	uh.Name, err = reader.ReadString('\n')
-	if err != nil {
+	if err := uh.addUserName(); err != nil {
 		log.Println(err)
 		return
 	}
-	uh.Name = strings.TrimSpace(uh.Name)
-	userQuantity = append(userQuantity, *uh)
+	mu.Lock()
+
+	if len(userQuantity) > 10 {
+		fmt.Fprint(uh.Conn, "\nsorry, chat is full")
+		uh.Conn.Close()
+		return
+	}
+	userQuantity[uh.Name] = uh.Conn
+
 	mu.Unlock()
+	msgChan <- BroadPayload{Msg: fmt.Sprintf("\n%s has joined our chat...", uh.Name), Name: uh.Name}
 	for {
 		msg, err := reader.ReadString('\n')
 		fmt.Fprint(uh.Conn, message(uh.Name, ""))
@@ -36,6 +41,21 @@ func (uh *UserHandler) HandleConnection(msgChan chan string, mu *sync.Mutex) {
 			fmt.Println(err)
 			return
 		}
-		msgChan <- msg
+		if isValidMsg(msg) {
+			msgChan <- BroadPayload{Msg: message(uh.Name, msg), Name: uh.Name}
+		}
 	}
+}
+
+func (uh *UserHandler) addUserName() error {
+	name, err := bufio.NewReader(uh.Conn).ReadString('\n')
+	if err != nil {
+		return err
+	}
+	name = strings.TrimSpace(name)
+	if !isValidName(uh.Conn, name) {
+		return uh.addUserName()
+	}
+	uh.Name = name
+	return nil
 }

@@ -20,3 +20,24 @@ func message(name, data string) string {
 func isValidMsg(msg string) bool {
 	return !(msg == "" || (msg[0] >= 0 && msg[0] <= 31))
 }
+
+func isValidName(c net.Conn, name string) bool {
+	for _, ch := range name {
+		if ch >= 0 && ch <= 31 {
+			fmt.Fprint(c, "Not valid name\nPlease try again...\n[ENTER YOUR NAME]:")
+			return false
+		}
+	}
+
+	if name == "" {
+		fmt.Fprint(c, "Not valid name\nPlease try again...\n[ENTER YOUR NAME]:")
+		return false
+	}
+
+	if _, ok := userQuantity[name]; ok {
+		fmt.Fprint(c, "Username has already taken\nPlease try again...\n[ENTER YOUR NAME]:")
+		return false
+	}
+
+	return true
+}
