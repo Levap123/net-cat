@@ -13,7 +13,7 @@ func Broadcast(msgChan chan BroadPayload) {
 	for val := range msgChan {
 		for name, conn := range userQuantity {
 			if name != val.Name {
-				fmt.Fprint(conn, val.Msg[:len(val.Msg)-1])
+				fmt.Fprint(conn, val.Msg)
 			}
 		}
 	}

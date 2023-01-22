@@ -35,8 +35,8 @@ func (uh *UserHandler) HandleConnection(msgChan chan BroadPayload, mu *sync.Mute
 	mu.Unlock()
 	msgChan <- BroadPayload{Msg: fmt.Sprintf("\n%s has joined our chat...", uh.Name), Name: uh.Name}
 	for {
-		msg, err := reader.ReadString('\n')
 		fmt.Fprint(uh.Conn, message(uh.Name, ""))
+		msg, err := reader.ReadString('\n')
 		if err != nil {
 			fmt.Println(err)
 			return

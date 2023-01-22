@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -14,7 +15,7 @@ func welcome(conn net.Conn) {
 
 func message(name, data string) string {
 	realTtime := time.Now().Format("2006-01-02 15:04:05")
-	return fmt.Sprintf("\n[%s][%s]:%s", realTtime, name, data)
+	return fmt.Sprintf("\n[%s][%s]:%s", realTtime, name, strings.TrimSpace(data))
 }
 
 func isValidMsg(msg string) bool {
