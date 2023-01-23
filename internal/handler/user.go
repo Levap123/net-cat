@@ -3,6 +3,7 @@ package handler
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"strings"
@@ -16,7 +17,7 @@ type UserHandler struct {
 
 var userQuantity = make(map[string]net.Conn, 10)
 
-func (uh *UserHandler) HandleConnection(msgChan chan BroadPayload, mu *sync.Mutex) {
+func (uh *UserHandler) HandleConnection(msgChan chan BroadPayload, jlChan chan JoinLeave, mu *sync.Mutex) {
 	welcome(uh.Conn)
 	reader := bufio.NewReader(uh.Conn)
 	defer uh.Conn.Close()
@@ -33,15 +34,22 @@ func (uh *UserHandler) HandleConnection(msgChan chan BroadPayload, mu *sync.Mute
 	userQuantity[uh.Name] = uh.Conn
 
 	mu.Unlock()
-	msgChan <- BroadPayload{Msg: fmt.Sprintf("%s has joined our chat...", uh.Name), Name: uh.Name}
+	jlChan <- JoinLeave{IsJoin: true, Name: uh.Name}
 	for {
 		fmt.Fprint(uh.Conn, message(uh.Name, "\n"))
 		msg, err := reader.ReadString('\n')
+		if err == io.EOF {
+			mu.Lock()
+			delete(userQuantity, uh.Name)
+			mu.Unlock()
+			jlChan <- JoinLeave{IsJoin: false, Name: uh.Name}
+		}
 		if err != nil {
 			log.Println(err)
 			return
 		}
 		if isValidMsg(msg) {
+			// fmt.Fprintf(uh.Conn, "\n%s", message(uh.Name, "\n"))
 			msgChan <- BroadPayload{Msg: message(uh.Name, msg), Name: uh.Name}
 		}
 	}

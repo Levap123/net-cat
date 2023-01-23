@@ -33,8 +33,9 @@ func NewServer(address string) (*Server, error) {
 func (s *Server) Run() error {
 	log.Printf("Listening on the %v\n", s.Listener.Addr())
 	ch := make(chan handler.BroadPayload)
+	ch1 := make(chan handler.JoinLeave)
 	var mu sync.Mutex
-	go handler.Broadcast(ch)
+	go handler.Broadcast(ch, ch1)
 	for {
 		conn, err := s.Listener.Accept()
 		if err != nil {
@@ -43,6 +44,6 @@ func (s *Server) Run() error {
 		user := &handler.UserHandler{
 			Conn: conn,
 		}
-		go user.HandleConnection(ch, &mu)
+		go user.HandleConnection(ch, ch1, &mu)
 	}
 }
