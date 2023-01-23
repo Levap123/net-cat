@@ -57,7 +57,6 @@ func (c *Chat) send(msg, username string, mu *sync.Mutex) {
 }
 
 func (chat *Chat) printAllBuffer(c net.Conn) {
-	// fmt.Println(msgBuffer)
 	for ind, buff := range chat.MsgBuffer {
 		if ind == 0 {
 			fmt.Fprint(c, buff[1:])
