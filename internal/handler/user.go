@@ -12,47 +12,47 @@ import (
 
 type UserHandler struct {
 	Name string
-	Conn net.Conn
-	Mu   *sync.Mutex
-	Chat *Chat
+	conn net.Conn
+	mu   *sync.Mutex
+	chat *Chat
 }
 
 var userQuantity = make(map[string]net.Conn, 10)
 
 func NewUserHandler(conn net.Conn, mu *sync.Mutex, chat *Chat) *UserHandler {
 	return &UserHandler{
-		Conn: conn,
-		Mu:   mu,
-		Chat: chat,
+		conn: conn,
+		mu:   mu,
+		chat: chat,
 	}
 }
 
 func (uh *UserHandler) HandleConnection(msgChan chan BroadPayload, joinLeaveChan chan JoinLeave) {
-	welcome(uh.Conn)
-	reader := bufio.NewReader(uh.Conn)
-	defer uh.Conn.Close()
+	welcome(uh.conn)
+	defer uh.conn.Close()
 	if err := uh.addUserName(); err != nil {
 		log.Println(err)
 		return
 	}
 
-	uh.Mu.Lock()
+	uh.mu.Lock()
+	reader := bufio.NewReader(uh.conn)
 	if len(userQuantity) >= 10 {
-		fmt.Fprint(uh.Conn, "\nsorry, chat is full")
+		fmt.Fprint(uh.conn, "\nsorry, chat is full")
 		return
 	}
-	userQuantity[uh.Name] = uh.Conn
-	uh.Mu.Unlock()
-	uh.Chat.printAllBuffer(uh.Conn)
+	userQuantity[uh.Name] = uh.conn
+	uh.chat.printAllBuffer(uh.conn)
 	joinLeaveChan <- JoinLeave{IsJoin: true, Name: uh.Name}
+	uh.mu.Unlock()
 	for {
-		fmt.Fprint(uh.Conn, message(uh.Name, "\n"))
+		fmt.Fprint(uh.conn, message(uh.Name, "\n"))
 		msg, err := reader.ReadString('\n')
 		if err == io.EOF {
-			uh.Mu.Lock()
+			uh.mu.Lock()
 			delete(userQuantity, uh.Name)
-			uh.Mu.Unlock()
 			joinLeaveChan <- JoinLeave{IsJoin: false, Name: uh.Name}
+			uh.mu.Unlock()
 			return
 		}
 		if err != nil {
@@ -60,20 +60,20 @@ func (uh *UserHandler) HandleConnection(msgChan chan BroadPayload, joinLeaveChan
 			return
 		}
 		if isValidMsg(msg) {
-			uh.Mu.Lock()
+			uh.mu.Lock()
 			msgChan <- BroadPayload{Msg: message(uh.Name, msg), Name: uh.Name}
-			uh.Mu.Unlock()
+			uh.mu.Unlock()
 		}
 	}
 }
 
 func (uh *UserHandler) addUserName() error {
-	name, err := bufio.NewReader(uh.Conn).ReadString('\n')
+	name, err := bufio.NewReader(uh.conn).ReadString('\n')
 	if err != nil {
 		return err
 	}
 	name = strings.TrimSpace(name)
-	if !isValidName(uh.Conn, name) {
+	if !isValidName(uh.conn, name) {
 		return uh.addUserName()
 	}
 	uh.Name = name

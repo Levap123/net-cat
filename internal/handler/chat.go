@@ -17,7 +17,7 @@ type JoinLeave struct {
 }
 
 type Chat struct {
-	MsgBuffer []string
+	msgBuffer []string
 	mu        *sync.Mutex
 }
 
@@ -46,7 +46,7 @@ func (c *Chat) Broadcast(msgChan chan BroadPayload, joinLeaveChan chan JoinLeave
 
 func (c *Chat) send(msg, username string) {
 	c.mu.Lock()
-	c.MsgBuffer = append(c.MsgBuffer, "\n"+msg)
+	c.msgBuffer = append(c.msgBuffer, "\n"+msg)
 	c.mu.Unlock()
 	for name, conn := range userQuantity {
 		if name != username {
@@ -57,12 +57,12 @@ func (c *Chat) send(msg, username string) {
 }
 
 func (chat *Chat) printAllBuffer(c net.Conn) {
-	for ind, buff := range chat.MsgBuffer {
+	for ind, buff := range chat.msgBuffer {
 		if ind == 0 {
 			fmt.Fprint(c, buff[1:])
 			continue
 		}
-		if ind == len(chat.MsgBuffer)-1 {
+		if ind == len(chat.msgBuffer)-1 {
 			fmt.Fprint(c, buff+"\n")
 			continue
 		}
