@@ -36,15 +36,14 @@ func (s *Server) Run() error {
 	ch1 := make(chan handler.JoinLeave)
 	var mu sync.Mutex
 	var mu1 sync.Mutex
-	go handler.Broadcast(ch, ch1, &mu1)
+	chat := handler.NewChat(&mu1)
+	go chat.Broadcast(ch, ch1, &mu1)
 	for {
 		conn, err := s.Listener.Accept()
 		if err != nil {
 			return err
 		}
-		user := &handler.UserHandler{
-			Conn: conn,
-		}
-		go user.HandleConnection(ch, ch1, &mu)
+		user := handler.NewUserHandler(conn, &mu, chat)
+		go user.HandleConnection(ch, ch1)
 	}
 }

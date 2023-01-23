@@ -43,17 +43,3 @@ func isValidName(c net.Conn, name string) bool {
 	return true
 }
 
-func printAllBuffer(c net.Conn) {
-	// fmt.Println(msgBuffer)
-	for ind, buff := range msgBuffer {
-		if ind == 0 {
-			fmt.Fprint(c, buff[1:])
-			continue
-		}
-		if ind == len(msgBuffer)-1 {
-			fmt.Fprint(c, buff+"\n")
-			continue
-		}
-		fmt.Fprint(c, buff)
-	}
-}

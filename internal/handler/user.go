@@ -13,11 +13,21 @@ import (
 type UserHandler struct {
 	Name string
 	Conn net.Conn
+	Mu   *sync.Mutex
+	Chat *Chat
 }
 
 var userQuantity = make(map[string]net.Conn, 10)
 
-func (uh *UserHandler) HandleConnection(msgChan chan BroadPayload, joinLeaveChan chan JoinLeave, mu *sync.Mutex) {
+func NewUserHandler(conn net.Conn, mu *sync.Mutex, chat *Chat) *UserHandler {
+	return &UserHandler{
+		Conn: conn,
+		Mu:   mu,
+		Chat: chat,
+	}
+}
+
+func (uh *UserHandler) HandleConnection(msgChan chan BroadPayload, joinLeaveChan chan JoinLeave) {
 	welcome(uh.Conn)
 	reader := bufio.NewReader(uh.Conn)
 	defer uh.Conn.Close()
@@ -26,22 +36,22 @@ func (uh *UserHandler) HandleConnection(msgChan chan BroadPayload, joinLeaveChan
 		return
 	}
 
-	mu.Lock()
+	uh.Mu.Lock()
 	if len(userQuantity) >= 10 {
 		fmt.Fprint(uh.Conn, "\nsorry, chat is full")
 		return
 	}
 	userQuantity[uh.Name] = uh.Conn
-	mu.Unlock()
-	printAllBuffer(uh.Conn)
+	uh.Mu.Unlock()
+	uh.Chat.printAllBuffer(uh.Conn)
 	joinLeaveChan <- JoinLeave{IsJoin: true, Name: uh.Name}
 	for {
 		fmt.Fprint(uh.Conn, message(uh.Name, "\n"))
 		msg, err := reader.ReadString('\n')
 		if err == io.EOF {
-			mu.Lock()
+			uh.Mu.Lock()
 			delete(userQuantity, uh.Name)
-			mu.Unlock()
+			uh.Mu.Unlock()
 			joinLeaveChan <- JoinLeave{IsJoin: false, Name: uh.Name}
 			return
 		}
@@ -50,9 +60,9 @@ func (uh *UserHandler) HandleConnection(msgChan chan BroadPayload, joinLeaveChan
 			return
 		}
 		if isValidMsg(msg) {
-			mu.Lock()
+			uh.Mu.Lock()
 			msgChan <- BroadPayload{Msg: message(uh.Name, msg), Name: uh.Name}
-			mu.Unlock()
+			uh.Mu.Unlock()
 		}
 	}
 }
