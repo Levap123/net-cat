@@ -19,6 +19,7 @@ var userQuantity = make(map[string]net.Conn, 10)
 func (uh *UserHandler) HandleConnection(msgChan chan BroadPayload, mu *sync.Mutex) {
 	welcome(uh.Conn)
 	reader := bufio.NewReader(uh.Conn)
+	defer uh.Conn.Close()
 	if err := uh.addUserName(); err != nil {
 		log.Println(err)
 		return
@@ -27,18 +28,17 @@ func (uh *UserHandler) HandleConnection(msgChan chan BroadPayload, mu *sync.Mute
 
 	if len(userQuantity) > 10 {
 		fmt.Fprint(uh.Conn, "\nsorry, chat is full")
-		uh.Conn.Close()
 		return
 	}
 	userQuantity[uh.Name] = uh.Conn
 
 	mu.Unlock()
-	msgChan <- BroadPayload{Msg: fmt.Sprintf("\n%s has joined our chat...", uh.Name), Name: uh.Name}
+	msgChan <- BroadPayload{Msg: fmt.Sprintf("%s has joined our chat...", uh.Name), Name: uh.Name}
 	for {
-		fmt.Fprint(uh.Conn, message(uh.Name, ""))
+		fmt.Fprint(uh.Conn, message(uh.Name, "\n"))
 		msg, err := reader.ReadString('\n')
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 			return
 		}
 		if isValidMsg(msg) {

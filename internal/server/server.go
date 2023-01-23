@@ -12,7 +12,7 @@ import (
 var userQuantity = 0
 
 type Server struct {
-	listener net.Listener
+	Listener net.Listener
 }
 
 func NewServer(address string) (*Server, error) {
@@ -26,17 +26,17 @@ func NewServer(address string) (*Server, error) {
 	}
 
 	return &Server{
-		listener: listener,
+		Listener: listener,
 	}, nil
 }
 
 func (s *Server) Run() error {
-	log.Printf("Listening on the %v\n", s.listener.Addr())
+	log.Printf("Listening on the %v\n", s.Listener.Addr())
 	ch := make(chan handler.BroadPayload)
 	var mu sync.Mutex
 	go handler.Broadcast(ch)
 	for {
-		conn, err := s.listener.Accept()
+		conn, err := s.Listener.Accept()
 		if err != nil {
 			return err
 		}

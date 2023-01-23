@@ -23,7 +23,7 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-
+	defer server.Listener.Close()
 	if err := server.Run(); err != nil {
 		log.Fatalln(err)
 	}
