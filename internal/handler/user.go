@@ -17,7 +17,7 @@ type UserHandler struct {
 
 var userQuantity = make(map[string]net.Conn, 10)
 
-func (uh *UserHandler) HandleConnection(msgChan chan BroadPayload, jlChan chan JoinLeave, mu *sync.Mutex) {
+func (uh *UserHandler) HandleConnection(msgChan chan BroadPayload, joinLeaveChan chan JoinLeave, mu *sync.Mutex) {
 	welcome(uh.Conn)
 	reader := bufio.NewReader(uh.Conn)
 	defer uh.Conn.Close()
@@ -34,7 +34,7 @@ func (uh *UserHandler) HandleConnection(msgChan chan BroadPayload, jlChan chan J
 	userQuantity[uh.Name] = uh.Conn
 
 	mu.Unlock()
-	jlChan <- JoinLeave{IsJoin: true, Name: uh.Name}
+	joinLeaveChan <- JoinLeave{IsJoin: true, Name: uh.Name}
 	for {
 		fmt.Fprint(uh.Conn, message(uh.Name, "\n"))
 		msg, err := reader.ReadString('\n')
@@ -42,14 +42,13 @@ func (uh *UserHandler) HandleConnection(msgChan chan BroadPayload, jlChan chan J
 			mu.Lock()
 			delete(userQuantity, uh.Name)
 			mu.Unlock()
-			jlChan <- JoinLeave{IsJoin: false, Name: uh.Name}
+			joinLeaveChan <- JoinLeave{IsJoin: false, Name: uh.Name}
 		}
 		if err != nil {
 			log.Println(err)
 			return
 		}
 		if isValidMsg(msg) {
-			// fmt.Fprintf(uh.Conn, "\n%s", message(uh.Name, "\n"))
 			msgChan <- BroadPayload{Msg: message(uh.Name, msg), Name: uh.Name}
 		}
 	}

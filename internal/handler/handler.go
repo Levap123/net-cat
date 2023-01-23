@@ -14,10 +14,10 @@ type JoinLeave struct {
 	IsJoin bool
 }
 
-func Broadcast(msgChan chan BroadPayload, joinLeave chan JoinLeave) {
+func Broadcast(msgChan chan BroadPayload, joinLeaveChan chan JoinLeave) {
 	for {
 		select {
-		case jl := <-joinLeave:
+		case jl := <-joinLeaveChan:
 			if jl.IsJoin {
 				msg := fmt.Sprintf("%s has joined our chat...", jl.Name)
 				sender(msg, jl.Name)
