@@ -37,7 +37,6 @@ func (c *Chat) Broadcast(msgChan chan BroadPayload, joinLeaveChan chan JoinLeave
 				msg := fmt.Sprintf("%s has left our chat...", jl.Name)
 				c.send(msg, jl.Name)
 			}
-
 		case val := <-msgChan:
 			c.send(val.Msg, val.Name)
 		}
@@ -58,12 +57,16 @@ func (c *Chat) send(msg, username string) {
 
 func (chat *Chat) printAllBuffer(c net.Conn) {
 	for ind, buff := range chat.msgBuffer {
-		if ind == 0 {
-			fmt.Fprint(c, buff[1:])
+		if len(chat.msgBuffer)-1 == 0 {
+			fmt.Fprint(c, buff[1:]+"\n")
 			continue
 		}
 		if ind == len(chat.msgBuffer)-1 {
 			fmt.Fprint(c, buff+"\n")
+			continue
+		}
+		if ind == 0 {
+			fmt.Fprint(c, buff[1:])
 			continue
 		}
 		fmt.Fprint(c, buff)
