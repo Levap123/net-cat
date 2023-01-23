@@ -35,7 +35,8 @@ func (s *Server) Run() error {
 	ch := make(chan handler.BroadPayload)
 	ch1 := make(chan handler.JoinLeave)
 	var mu sync.Mutex
-	go handler.Broadcast(ch, ch1)
+	var mu1 sync.Mutex
+	go handler.Broadcast(ch, ch1, &mu1)
 	for {
 		conn, err := s.Listener.Accept()
 		if err != nil {
