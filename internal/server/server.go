@@ -37,7 +37,7 @@ func (s *Server) Run() error {
 	var mu sync.Mutex
 	var mu1 sync.Mutex
 	chat := handler.NewChat(&mu1)
-	go chat.Broadcast(ch, ch1, &mu1)
+	go chat.Broadcast(ch, ch1)
 	for {
 		conn, err := s.Listener.Accept()
 		if err != nil {

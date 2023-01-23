@@ -18,36 +18,36 @@ type JoinLeave struct {
 
 type Chat struct {
 	MsgBuffer []string
-	Mu        *sync.Mutex
+	mu        *sync.Mutex
 }
 
 func NewChat(mu *sync.Mutex) *Chat {
 	return &Chat{
-		Mu: mu,
+		mu: mu,
 	}
 }
-func (c *Chat) Broadcast(msgChan chan BroadPayload, joinLeaveChan chan JoinLeave, mu *sync.Mutex) {
+func (c *Chat) Broadcast(msgChan chan BroadPayload, joinLeaveChan chan JoinLeave) {
 	for {
 		select {
 		case jl := <-joinLeaveChan:
 			if jl.IsJoin {
 				msg := fmt.Sprintf("%s has joined our chat...", jl.Name)
-				c.send(msg, jl.Name, mu)
+				c.send(msg, jl.Name)
 			} else {
 				msg := fmt.Sprintf("%s has left our chat...", jl.Name)
-				c.send(msg, jl.Name, mu)
+				c.send(msg, jl.Name)
 			}
 
 		case val := <-msgChan:
-			c.send(val.Msg, val.Name, mu)
+			c.send(val.Msg, val.Name)
 		}
 	}
 }
 
-func (c *Chat) send(msg, username string, mu *sync.Mutex) {
-	c.Mu.Lock()
+func (c *Chat) send(msg, username string) {
+	c.mu.Lock()
 	c.MsgBuffer = append(c.MsgBuffer, "\n"+msg)
-	c.Mu.Unlock()
+	c.mu.Unlock()
 	for name, conn := range userQuantity {
 		if name != username {
 			fmt.Fprint(conn, "\n"+msg)
