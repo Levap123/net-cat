@@ -20,19 +20,19 @@ func Broadcast(msgChan chan BroadPayload, joinLeaveChan chan JoinLeave) {
 		case jl := <-joinLeaveChan:
 			if jl.IsJoin {
 				msg := fmt.Sprintf("%s has joined our chat...", jl.Name)
-				sender(msg, jl.Name)
+				send(msg, jl.Name)
 			} else {
 				msg := fmt.Sprintf("%s has left our chat...", jl.Name)
-				sender(msg, jl.Name)
+				send(msg, jl.Name)
 			}
 
 		case val := <-msgChan:
-			sender(val.Msg, val.Name)
+			send(val.Msg, val.Name)
 		}
 	}
 }
 
-func sender(msg, username string) {
+func send(msg, username string) {
 	for name, conn := range userQuantity {
 		if name != username {
 			fmt.Fprint(conn, "\n"+msg)
