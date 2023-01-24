@@ -31,13 +31,13 @@ func NewServer(address string) (*Server, error) {
 }
 
 func (s *Server) Run() error {
-	log.Printf("Listening on the %v\n", s.Listener.Addr())
 	ch := make(chan handler.BroadPayload)
 	ch1 := make(chan handler.JoinLeave)
 	var mu sync.Mutex
 	var mu1 sync.Mutex
 	chat := handler.NewChat(&mu1)
 	go chat.Broadcast(ch, ch1)
+	log.Printf("Listening on the %v\n", s.Listener.Addr())
 	for {
 		conn, err := s.Listener.Accept()
 		if err != nil {
