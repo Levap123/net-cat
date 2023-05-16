@@ -15,16 +15,14 @@ func main() {
 	}
 
 	port := "8989"
-	
+
 
 	if len(os.Args) == 2 {
 		port = os.Args[1]
 	}
 	address := "localhost:" + port
-	server, err := server.NewServer(address)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	server, _:= server.NewServer(address)
+	
 	defer server.Listener.Close()
 	if err := server.Run(); err != nil {
 		log.Fatalln(err)
