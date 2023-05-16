@@ -14,7 +14,9 @@ func welcome(conn net.Conn) {
 }
 
 func message(name, data string) string {
-	realTtime := time.Now().Format("2006-01-02 15:04:05")
+	realTtime :=
+		time.Now().Format("2006-01-02 15:04:05")
+		
 	return strings.TrimSpace(fmt.Sprintf("\n[%s][%s]:%s", realTtime, name, data))
 }
 
@@ -42,4 +44,3 @@ func isValidName(c net.Conn, name string) bool {
 
 	return true
 }
-

@@ -31,6 +31,7 @@ func (c *Chat) Broadcast(msgChan chan BroadPayload, joinLeaveChan chan JoinLeave
 		select {
 		case jl := <-joinLeaveChan:
 			if jl.IsJoin {
+				
 				msg := fmt.Sprintf("%s has joined our chat...", jl.Name)
 				c.send(msg, jl.Name)
 			} else {

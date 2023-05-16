@@ -5,7 +5,6 @@ import (
 	"log"
 	"net-cat/internal/server"
 	"os"
-
 )
 
 func main() {
@@ -16,15 +15,16 @@ func main() {
 
 	port := "8989"
 
-
 	if len(os.Args) == 2 {
 		port = os.Args[1]
 	}
+
 	address := "localhost:" + port
-	server, _:= server.NewServer(address)
-	
+	server, err := server.NewServer(address)
+	panic(err)
 	defer server.Listener.Close()
-	if err := server.Run(); err != nil {
+	err = server.Run()
+	if err != nil {
 		log.Fatalln(err)
 	}
 }
