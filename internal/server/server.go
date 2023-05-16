@@ -24,6 +24,7 @@ func NewServer(address string) (*Server, error) {
 
 		return nil, err
 	}
+	
 
 	return &Server{
 		Listener: listener,

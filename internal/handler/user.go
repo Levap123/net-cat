@@ -12,6 +12,7 @@ import (
 
 type UserHandler struct {
 	Name string
+
 	conn net.Conn
 	mu   *sync.Mutex
 	chat *Chat
@@ -38,6 +39,7 @@ func (uh *UserHandler) HandleConnection(msgChan chan BroadPayload, joinLeaveChan
 	uh.mu.Lock()
 	if len(userQuantity) >= 10 {
 		fmt.Fprint(uh.conn, "\nsorry, chat is full")
+
 		uh.mu.Unlock()
 		return
 	}
@@ -49,6 +51,7 @@ func (uh *UserHandler) HandleConnection(msgChan chan BroadPayload, joinLeaveChan
 	for {
 		fmt.Fprint(uh.conn, message(uh.Name, "\n"))
 		msg, err := reader.ReadString('\n')
+
 		if err == io.EOF {
 			uh.mu.Lock()
 			delete(userQuantity, uh.Name)
@@ -60,6 +63,7 @@ func (uh *UserHandler) HandleConnection(msgChan chan BroadPayload, joinLeaveChan
 			log.Println(err)
 			return
 		}
+		
 		if isValidMsg(msg) {
 			msgChan <- BroadPayload{Msg: message(uh.Name, msg), Name: uh.Name}
 		}
